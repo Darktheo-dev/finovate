@@ -1,0 +1,84 @@
+/* Center title and greeting */
+#Title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+#greeting {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+/* Center everything */
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f4f4f4;
+  margin: 0;
+}
+
+/* Styling the rectangle (login box) */
+.rectangle {
+  width: 350px;
+  padding: 20px;
+  background-color: white;
+  border: 2px solid black;
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 10px;
+}
+
+/* Styling input fields */
+.rectangle input {
+  width: 80%;
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+/* Styling the login button */
+#loginButton {
+  width: 100%;
+  padding: 10px;
+  margin-top: 15px;
+  background-color: blue;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  display: block;
+  text-align: center;
+}
+
+#loginButton:hover {
+  background-color: darkblue;
+}
+
+/* Ensuring the anchor tag around the button takes full width */
+a {
+  width: 85%;
+  text-align: center;
+}
+
+/* Styling the "Create a new account" link */
+#New_account {
+  font-size: 12px;
+  margin-top: 15px;
+  text-decoration: none;
+  color: blue;
+  display: block; /* Ensures it appears on a new line */
+}
+
+#New_account:hover {
+  text-decoration: underline;
+}
