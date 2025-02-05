@@ -1,11 +1,11 @@
 #greeting {
   text-align: center;
-  margin-top: 350px;
-  font-size: 28px;
+  margin-top: 65px;
+  font-size: 30px;
   line-height: 16px;
-  color: white;
+  color: darkorange;
+  font-weight: bolder;
 }
-
 body {
   display: flex;
   flex-direction: column;
@@ -14,12 +14,11 @@ body {
   min-height: 100vh;
   background-image: url("background.webp");
   background-size: cover;
-  background-position: center;
+
   background-repeat: no-repeat;
   margin: 0;
   padding: 20px;
 }
-
 .rectangle {
   width: 90%;
   max-width: 400px;
@@ -32,7 +31,6 @@ body {
   align-items: center;
   border-radius: 10px;
 }
-
 .rectangle input {
   width: 80%;
   padding: 10px;
@@ -41,7 +39,6 @@ body {
   border-radius: 5px;
   font-size: 16px;
 }
-
 #loginButton {
   width: 100%;
   padding: 10px;
@@ -55,17 +52,14 @@ body {
   display: block;
   text-align: center;
 }
-
 #loginButton:hover {
   background-color: darkblue;
 }
-
 a {
   width: 85%;
   text-align: center;
   display: block;
 }
-
 #New_account {
   font-size: 12px;
   margin-top: 15px;
@@ -73,11 +67,9 @@ a {
   color: blue;
   display: block;
 }
-
 #New_account:hover {
   text-decoration: underline;
 }
-
 #logo {
   text-align: center;
   font-size: 28px;
