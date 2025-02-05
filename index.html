@@ -9,22 +9,22 @@
   <body>
     <img src="LUCRE_LOGO_1.png" id="logo" />
     <p id="greeting">
-      <strong> Welcome to Lucre, please log in or sign up!</strong>
+      <strong>Welcome to Lucre, please log in or sign up!</strong>
     </p>
 
     <div class="rectangle">
-      <input type="text" placeholder="Username" />
-      <input type="password" placeholder="Password" />
+      <input type="text" placeholder="Username" id="username" />
+      <input type="password" placeholder="Password" id="password" />
 
-      <!-- Fixed the login button inside an anchor tag -->
-      <a href="HomePage.html">
-        <button id="loginButton">Log in</button>
-      </a>
+      <!-- Login button without an anchor tag -->
+      <button id="loginButton">Log in</button>
 
       <!-- New account link positioned below -->
       <a href="newAccount.html" id="New_account">
-        <em> Create a new account</em></a
-      >
+        <em>Create a new account</em>
+      </a>
     </div>
+
+    <script src="script.js"></script>
   </body>
 </html>
