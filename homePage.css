@@ -1,0 +1,52 @@
+#Homepage_greeting {
+  text-align: left;
+  font-weight: normal;
+  font-size: 25px;
+  margin-left: 30px;
+  margin-top: 25px;
+}
+
+#Question {
+  text-align: center;
+  font-weight: normal;
+}
+
+#manageSubs {
+  height: 60px;
+  width: 350px;
+  border-radius: 30px;
+  background-color: #ff9800;
+  color: black;
+  font-weight: normal;
+  font-size: 20px;
+  position: fixed;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: none;
+}
+
+#manageSubs:hover {
+  cursor: pointer;
+  box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.3);
+}
+
+#seeStocks {
+  height: 60px;
+  width: 350px;
+  border-radius: 30px;
+  background-color: #ff9800;
+  color: black;
+  font-weight: normal;
+  font-size: 20px;
+  position: fixed;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: none;
+}
+
+#seeStocks:hover {
+  cursor: pointer;
+  box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.3);
+}
