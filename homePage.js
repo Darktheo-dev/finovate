@@ -1,12 +1,19 @@
 document.addEventListener("DOMContentLoaded", function () {
-  var greet = document.getElementById("Homepage_greeting");
+  const username = localStorage.getItem("loggedInUser");
 
-  if (greet) {
-    var storedUsername = localStorage.getItem("username");
+  if (username) {
+    document.getElementById(
+      "Homepage_greeting"
+    ).innerText = `Welcome back, ${username}!`;
+  }
+});
 
-    if (storedUsername) {
-      storedUsername = storedUsername.toUpperCase(); // Convert to uppercase
-      greet.textContent = "Welcome back, " + storedUsername + "!"; // Update greeting
-    }
+document.addEventListener("DOMContentLoaded", function () {
+  const username = localStorage.getItem("loggedInUser");
+
+  if (username) {
+    document.getElementById(
+      "Homepage_greeting"
+    ).innerText = `Welcome back, ${username}!`;
   }
 });

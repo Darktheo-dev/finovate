@@ -1,38 +1,57 @@
-/* Centering and Styling */
 body {
   font-family: Arial, sans-serif;
+  text-align: center;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
 }
 
-/* Login Box */
-.login-box {
-  width: 350px;
-}
-
-/* Styling for Inputs */
-.input-group-text {
-  background-color: #f8f9fa;
-}
-
-/* Logo */
 #logo {
-  display: block;
+  width: 150px;
+  margin-top: 20px;
+}
+
+#greeting {
+  font-size: 18px;
+  margin: 20px;
+}
+
+.rectangle {
+  background: white;
+  padding: 20px;
+  width: 300px;
   margin: 0 auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Error Message */
-.alert {
-  padding: 8px;
-  font-size: 14px;
+input {
+  width: 90%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
 }
 
-/* Hover Effects */
-.btn-primary:hover {
-  background-color: #004085;
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
-/* Link Styling */
+button:hover {
+  background-color: #0056b3;
+}
+
 #New_account {
+  display: block;
+  margin-top: 10px;
   color: #007bff;
+  text-decoration: none;
 }
 
 #New_account:hover {

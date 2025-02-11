@@ -1,13 +1,15 @@
-function handleLogin() {
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-  const errorMessage = document.getElementById("errorMessage");
+document.addEventListener("DOMContentLoaded", function () {
+  const loginButton = document.getElementById("loginButton");
 
-  // Simulated login (Replace with real authentication logic)
-  if (username === "admin" && password === "1234") {
-    alert("Login successful!");
-    window.location.href = "homepage.html"; // Redirect to dashboard
-  } else {
-    errorMessage.classList.remove("d-none"); // Show error message
-  }
-}
+  loginButton.addEventListener("click", function () {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    if (username === "" || password === "") {
+      alert("Please enter both username and password.");
+    } else {
+      localStorage.setItem("loggedInUser", username);
+      window.location.href = "homePage.html";
+    }
+  });
+});
