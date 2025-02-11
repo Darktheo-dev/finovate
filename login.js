@@ -1,25 +1,13 @@
-document.addEventListener("DOMContentLoaded", function () {
-  var loginButton = document.getElementById("loginButton");
-  var createNewAccount = document.getElementById("New_account");
+function handleLogin() {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+  const errorMessage = document.getElementById("errorMessage");
 
-  if (loginButton) {
-    loginButton.addEventListener("click", function () {
-      var username = document.getElementById("username").value;
-      var password = document.getElementById("password").value;
-
-      if (username.trim() === "" || password.trim() === "") {
-        alert("Please enter credentials");
-      } else {
-        localStorage.setItem("username", username); // Store username
-        window.location.href = "HomePage.html"; // Redirect to home page
-      }
-    });
+  // Simulated login (Replace with real authentication logic)
+  if (username === "admin" && password === "1234") {
+    alert("Login successful!");
+    window.location.href = "homepage.html"; // Redirect to dashboard
+  } else {
+    errorMessage.classList.remove("d-none"); // Show error message
   }
-
-  if (createNewAccount) {
-    createNewAccount.addEventListener("click", function (event) {
-      event.preventDefault();
-      window.location.href = "newAccount.html";
-    });
-  }
-});
+}
