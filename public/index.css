@@ -1,59 +1,68 @@
+/* This styles the entire page */
 body {
-  font-family: Arial, sans-serif;
-  text-align: center;
-  background-color: #f4f4f4;
-  margin: 0;
+  font-family: Arial, sans-serif; /* Use a clean, readable font */
+  text-align: center; /* Center all text and elements */
+  background-color: #f4f4f4; /* Light gray background */
+  margin: 0; /* Remove default spacing */
   padding: 0;
 }
 
+/* Logo image at the top */
 #logo {
-  width: 150px;
-  margin-top: 20px;
+  width: 150px; /* Make logo smaller */
+  margin-top: 20px; /* Space above the logo */
 }
 
+/* Greeting message */
 #greeting {
-  font-size: 18px;
+  font-size: 18px; /* Make the text a bit bigger */
   margin: 20px;
 }
 
+/* White login box in the center */
 .rectangle {
-  background: white;
-  padding: 20px;
-  width: 300px;
-  margin: 0 auto;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: white; /* White box */
+  padding: 20px; /* Space inside the box */
+  width: 300px; /* Fixed box width */
+  margin: 0 auto; /* Center the box horizontally */
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Soft shadow */
 }
 
+/* Text inputs (username & password) */
 input {
-  width: 90%;
+  width: 90%; /* Make inputs wide */
   padding: 10px;
   margin: 10px 0;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  border: 1px solid #ccc; /* Light gray border */
+  border-radius: 5px; /* Rounded edges */
 }
 
+/* Login button */
 button {
-  width: 100%;
+  width: 100%; /* Full width */
   padding: 10px;
-  background-color: #007bff;
+  background-color: #007bff; /* Blue background */
   color: white;
   border: none;
   border-radius: 5px;
-  cursor: pointer;
+  cursor: pointer; /* Cursor changes on hover */
 }
 
+/* When hovering over the login button */
 button:hover {
-  background-color: #0056b3;
+  background-color: #0056b3; /* Darker blue when hovered */
 }
 
+/* "Create new account" link */
 #New_account {
-  display: block;
+  display: block; /* Put it on its own line */
   margin-top: 10px;
   color: #007bff;
   text-decoration: none;
 }
 
+/* Hover effect for the link */
 #New_account:hover {
   text-decoration: underline;
 }
