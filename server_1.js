@@ -8,33 +8,40 @@ const app = express();
 const db = new sqlite3.Database("users.db");
 const port = 3000;
 
-// Middleware to handle form data
+// Middleware to handle form data and static files
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static("public")); // Serve HTML/CSS/JS from /public
+app.use(express.static("public")); // Serves your HTML/CSS/JS files
 
-// Create full users table if not exists
-db.run(`
-  CREATE TABLE IF NOT EXISTS users (
-    firstName TEXT,
-    lastName TEXT,
-    username TEXT UNIQUE,
-    email TEXT UNIQUE,
-    password TEXT,
-    dob TEXT
-  )
-`);
+// Recreate users table with UNIQUE constraints if needed
+db.serialize(() => {
+  db.run(`DROP TABLE IF EXISTS users`);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+      firstName TEXT,
+      lastName TEXT,
+      username TEXT UNIQUE,
+      email TEXT UNIQUE,
+      password TEXT,
+      dob TEXT
+    )
+  `);
+});
 
-// Optional: route message if user tries to visit /index directly
+// Route: Catch direct access to /index
 app.get("/index", (req, res) => {
   res.send("📝 This is the login route. Please use the login form.");
 });
 
-// Register route – Save full user info
+// Route: Register new account
 app.post("/newAccount", (req, res) => {
   const { firstName, lastName, username, email, password, dob } = req.body;
 
+  console.log("📥 Received registration info:", req.body);
+
   db.run(
-    "INSERT INTO users (firstName, lastName, username, email, password, dob) VALUES (?, ?, ?, ?, ?, ?)",
+    `INSERT INTO users (firstName, lastName, username, email, password, dob)
+     VALUES (?, ?, ?, ?, ?, ?)`,
     [firstName, lastName, username, email, password, dob],
     function (err) {
       if (err) {
@@ -48,23 +55,27 @@ app.post("/newAccount", (req, res) => {
           res.send("❌ An unexpected error occurred.");
         }
       } else {
-        console.log("✅ New account created:", { username, email }); // ✅ Moved here!
+        console.log("✅ New account created:", { username, email });
         res.send("✅ New account created successfully!");
       }
     }
   );
 });
 
-// Login route – Check if user exists
+// Route: Login user
 app.post("/index", (req, res) => {
-  const name = req.body.username;
-  const pass = req.body.password;
+  const { username, password } = req.body;
+
+  console.log("🔐 Login attempt for:", username);
 
   db.get(
-    "SELECT * FROM users WHERE username = ? AND password = ?",
-    [name, pass],
-    function (err, row) {
-      if (row) {
+    `SELECT * FROM users WHERE username = ? AND password = ?`,
+    [username, password],
+    (err, row) => {
+      if (err) {
+        console.error("❌ Login error:", err.message);
+        res.send("❌ An error occurred. Please try again.");
+      } else if (row) {
         res.send("🎉 Login successful!");
       } else {
         res.send("❌ Wrong username or password.");
