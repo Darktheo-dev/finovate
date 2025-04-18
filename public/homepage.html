@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+   
+    <link rel="stylesheet" href="homePage.css" />
+  </head>
+  <body
+    class="d-flex flex-column align-items-center justify-content-center vh-100 bg-light"
+  >
+    <h1 id="Homepage_greeting" class="text-start fw-normal">Welcome back!</h1>
+    <h2 id="Question" class="text-center fw-normal">
+      What would you like to do today?
+    </h2>
+
+    <button onclick="ManageSubs()" id="manageSubs" class="btn btn-custom">
+      Manage my Subscriptions
+    </button>
+
+    <button onclick="seeStocks()" id="seeStocks" class="btn btn-custom">
+      See my Stocks
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="homePage.js"></script>
+
+    <script>
+      function ManageSubs() {
+        window.location.href = "subscription.html";
+      }
+
+      function seeStocks() {
+        window.location.href = "stocks.html";
+      }
+    </script>
+  </body>
+</html>

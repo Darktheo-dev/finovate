@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lucre - Home</title>
+    <link rel="stylesheet" href="index.css" />
+
+    <!-- Bootstrap: Gives us styled alerts and buttons -->
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
+    />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  </head>
+
+  <body>
+    <!-- Logo image -->
+    <img src="LUCRE_LOGO_1.png" id="logo" />
+
+    <!-- Welcome text -->
+    <p id="greeting">
+      <strong>Welcome to Lucre, please log in or sign up!</strong>
+    </p>
+
+    <!-- Alert box: shows warning or error messages -->
+    <div class="container">
+      <div
+        id="loginAlert"
+        class="alert alert-danger"
+        style="display: none"
+      ></div>
+    </div>
+
+    <!-- Login box -->
+    <div class="rectangle">
+      <input type="text" placeholder="Username" id="username" />
+      <input type="password" placeholder="Password" id="password" />
+      <button id="loginButton">Log in</button>
+      <br />
+      <a href="newAccount.html" id="New_account"
+        ><em>Create a new account</em></a
+      >
+    </div>
+
+    <!-- Login script -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Get the button and alert box
+        const loginButton = document.getElementById("loginButton");
+        const alertBox = document.getElementById("loginAlert");
+
+        // Function to show an alert message
+        function showAlert(message) {
+          alertBox.textContent = message;
+          alertBox.style.display = "block";
+        }
+
+        // When the login button is clicked
+        loginButton.addEventListener("click", function (e) {
+          e.preventDefault(); // Stop the page from reloading
+
+          // Get the values from the inputs
+          const username = document.getElementById("username").value.trim();
+          const password = document.getElementById("password").value.trim();
+
+          // If username or password is empty
+          if (username === "" || password === "") {
+            showAlert("⚠️ Please enter both username and password.");
+            return;
+          }
+
+          // Send the username and password to the server
+          fetch("/index", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: `username=${encodeURIComponent(
+              username
+            )}&password=${encodeURIComponent(password)}`,
+          })
+            .then((response) => response.text())
+            .then((result) => {
+              if (result.includes("Login successful")) {
+                // Save the user and go to homepage
+                localStorage.setItem("loggedInUser", username);
+                window.location.href = "homePage.html";
+              } else {
+                showAlert("❌ Wrong username or password.");
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              showAlert("⚠️ Server error. Please try again.");
+            });
+        });
+      });
+    </script>
+  </body>
+</html>
