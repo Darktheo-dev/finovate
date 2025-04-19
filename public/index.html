@@ -6,13 +6,11 @@
     <title>Lucre - Login</title>
     <link rel="stylesheet" href="index.css" />
 
-    <!-- Bootstrap (optional) -->
+    <!-- Bootstrap (optional for styling) -->
     <link
       rel="stylesheet"
       href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
     />
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
   </head>
 
   <body>
@@ -45,7 +43,7 @@
       </div>
     </div>
 
-    <!-- ✅ Firebase Login Script (via CDN ESM) -->
+    <!-- ✅ Firebase + Login Logic -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
       import {
@@ -53,12 +51,13 @@
         signInWithEmailAndPassword,
       } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-      // ✅ Replace with your actual config values
+      // ✅ Import your Firebase config from a separate file
       import { firebaseConfig } from "./firebase-config.js";
 
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
 
+      // ✅ Wait for DOM to load
       document.addEventListener("DOMContentLoaded", () => {
         const loginButton = document.getElementById("loginButton");
         const alertBox = document.getElementById("loginAlert");
@@ -78,12 +77,13 @@
           }
 
           signInWithEmailAndPassword(auth, email, password)
-            .then(() => {
-              showAlert("🎉 Login successful!");
-              localStorage.setItem("loggedInUser", email);
-              window.location.href = "homePage.html";
+            .then((userCredential) => {
+              const user = userCredential.user;
+              console.log("✅ Logged in as:", user.email);
+              window.location.href = "homepage.html";
             })
             .catch((error) => {
+              console.error("❌ Login error:", error.message);
               showAlert("❌ " + error.message);
             });
         });

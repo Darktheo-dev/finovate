@@ -83,7 +83,10 @@ app.post("/index", (req, res) => {
     }
   );
 });
-
+app.post("/logout", (req, res) => {
+  // You can clear any session/cookie here if you're using them
+  res.redirect("/index.html"); // Redirect to your homepage or login page
+});
 // Start the server
 app.listen(port, () => {
   console.log("🚀 Lucre server running at http://localhost:" + port);
