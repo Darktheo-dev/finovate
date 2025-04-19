@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
       })
       .catch((error) => {
         console.error("Error:", error);
-        showAlert("⚠️ Server error. Please try again.");
+        showAlert("⚠️ Server error. Please try again later.");
       });
   });
 });

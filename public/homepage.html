@@ -8,10 +8,9 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
-
-   
     <link rel="stylesheet" href="homePage.css" />
   </head>
+
   <body
     class="d-flex flex-column align-items-center justify-content-center vh-100 bg-light"
   >
@@ -20,7 +19,7 @@
       What would you like to do today?
     </h2>
 
-    <button onclick="ManageSubs()" id="manageSubs" class="btn btn-custom">
+    <button onclick="ManageSubs()" id="manageSubs" class="btn btn-custom mb-3">
       Manage my Subscriptions
     </button>
 
@@ -29,9 +28,18 @@
     </button>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="homePage.js"></script>
 
     <script>
+      // ✅ Use username from localStorage
+      const username = localStorage.getItem("username");
+      const greeting = document.getElementById("Homepage_greeting");
+
+      if (username) {
+        greeting.textContent = `Welcome back, ${username}!`;
+      } else {
+        greeting.textContent = "Welcome back!";
+      }
+
       function ManageSubs() {
         window.location.href = "subscription.html";
       }

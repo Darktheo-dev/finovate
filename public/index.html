@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lucre - Home</title>
+    <title>Lucre - Login</title>
     <link rel="stylesheet" href="index.css" />
 
-    <!-- Bootstrap: For styled alerts and buttons -->
+    <!-- Bootstrap (optional) -->
     <link
       rel="stylesheet"
       href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
@@ -17,7 +17,7 @@
 
   <body>
     <div class="main-wrapper">
-      <!-- Left box: Logo and welcome message -->
+      <!-- Left box -->
       <div class="left-box">
         <img src="LUCRE_LOGO_1.png" id="logo" />
         <p id="greeting">
@@ -34,19 +34,32 @@
         ></div>
 
         <div class="rectangle">
-          <input type="text" placeholder="Username" id="username" />
+          <input type="email" placeholder="Email" id="username" />
           <input type="password" placeholder="Password" id="password" />
           <button id="loginButton">Log in</button>
           <br />
-          <a href="newAccount.html" id="New_account"
-            ><em>Create a new account</em></a
-          >
+          <a href="newAccount.html" id="New_account">
+            <em>Create a new account</em>
+          </a>
         </div>
       </div>
     </div>
 
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
+    <!-- ✅ Firebase Login Script (via CDN ESM) -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+      import {
+        getAuth,
+        signInWithEmailAndPassword,
+      } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+      // ✅ Replace with your actual config values
+      import { firebaseConfig } from "./firebase-config.js";
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+
+      document.addEventListener("DOMContentLoaded", () => {
         const loginButton = document.getElementById("loginButton");
         const alertBox = document.getElementById("loginAlert");
 
@@ -55,38 +68,23 @@
           alertBox.style.display = "block";
         }
 
-        loginButton.addEventListener("click", function (e) {
-          e.preventDefault();
+        loginButton.addEventListener("click", () => {
+          const email = document.getElementById("username").value;
+          const password = document.getElementById("password").value;
 
-          const username = document.getElementById("username").value.trim();
-          const password = document.getElementById("password").value.trim();
-
-          if (username === "" || password === "") {
-            showAlert("⚠️ Please enter both username and password.");
+          if (email === "" || password === "") {
+            showAlert("⚠️ Please enter both email and password.");
             return;
           }
 
-          fetch("/index", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: `username=${encodeURIComponent(
-              username
-            )}&password=${encodeURIComponent(password)}`,
-          })
-            .then((response) => response.text())
-            .then((result) => {
-              if (result.includes("Login successful")) {
-                localStorage.setItem("loggedInUser", username);
-                window.location.href = "homePage.html";
-              } else {
-                showAlert("❌ Wrong username or password.");
-              }
+          signInWithEmailAndPassword(auth, email, password)
+            .then(() => {
+              showAlert("🎉 Login successful!");
+              localStorage.setItem("loggedInUser", email);
+              window.location.href = "homePage.html";
             })
             .catch((error) => {
-              console.error("Error:", error);
-              showAlert("⚠️ Server error. Please try again.");
+              showAlert("❌ " + error.message);
             });
         });
       });
