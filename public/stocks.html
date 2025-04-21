@@ -1,66 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <!-- META & TITLE -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Stock Tracker with Graph</title>
+    <title>Stocks</title>
+
+    <!-- 1) External libraries -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <!-- 2) Configuration (git‑ignored) -->
+    <script src="firebase-config.js"></script>
+
+    <!-- 3) Styles -->
     <style>
       body {
-        font-family: Arial, sans-serif;
+        font-family: Arial;
         background: #f2f2f2;
         text-align: center;
         padding: 20px;
       }
-
       .container {
-        background: white;
-        padding: 30px;
+        position: relative;
         max-width: 700px;
         margin: auto;
+        background: #fff;
+        padding: 30px;
         border-radius: 8px;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       }
-
       input,
       select,
       button {
+        font-size: 1em;
         padding: 10px;
         margin: 10px;
-        font-size: 1em;
       }
-
       button {
-        background-color: #007bff;
-        color: white;
+        background: #007bff;
+        color: #fff;
         border: none;
         border-radius: 4px;
         cursor: pointer;
       }
-
       button:hover {
-        background-color: #0056b3;
+        background: #0056b3;
       }
-
+      #logoutButton {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: #dc3545;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+      #logoutButton:hover {
+        background: #c82333;
+      }
       .error {
         color: red;
         font-weight: bold;
+        margin-top: 10px;
       }
-
       #spinner {
         display: none;
         margin: 20px auto;
       }
-
       .loader {
+        width: 40px;
+        height: 40px;
+        margin: auto;
         border: 6px solid #f3f3f3;
         border-top: 6px solid #3498db;
         border-radius: 50%;
-        width: 40px;
-        height: 40px;
         animation: spin 1s linear infinite;
       }
-
       @keyframes spin {
         to {
           transform: rotate(360deg);
@@ -70,18 +89,27 @@
   </head>
   <body>
     <div class="container">
-      <h1>📈 Simple Stock Tracker</h1>
+      <!-- Logout -->
+      <button id="logoutButton">Logout</button>
+
+      <!-- Header -->
+      <h1>Look up for a stock</h1>
+
+      <!-- Search -->
       <input type="text" id="searchInput" placeholder="Search for Company" />
       <button onclick="searchCompanies()">Search</button>
 
+      <!-- Dropdown -->
       <select
         id="symbolSelect"
-        onchange="fetchStockData()"
         style="display: none"
+        onchange="fetchStockData()"
       ></select>
 
+      <!-- Spinner -->
       <div id="spinner"><div class="loader"></div></div>
 
+      <!-- Stock Info Card -->
       <div id="stockInfo" style="display: none">
         <h2 id="stockName"></h2>
         <p id="stockDetails"></p>
@@ -95,114 +123,99 @@
         <canvas id="stockChart" width="600" height="400"></canvas>
       </div>
 
+      <!-- Error -->
       <p id="error" class="error"></p>
     </div>
-    <script src="config.js"></script>
-    <script src="script.js"></script>
 
+    <!-- Main Script -->
     <script>
-      const apiKey = API_KEY;
+      // Debug: confirm Firebase is initialized
+      console.log("Firebase apps:", firebase.apps);
+
       let chart;
 
+      // 1) Search companies
       async function searchCompanies() {
-        const query = document.getElementById("searchInput").value.trim();
-        const select = document.getElementById("symbolSelect");
-        select.innerHTML = "";
+        const q = document.getElementById("searchInput").value.trim();
+        const sel = document.getElementById("symbolSelect");
+        sel.innerHTML = "";
+        document.getElementById("error").textContent = "";
+        if (!q) return alert("Please enter a company name.");
 
-        if (!query) {
-          alert("Please enter a company name.");
+        const res = await fetch(
+          `https://api.twelvedata.com/symbol_search?symbol=${q}&apikey=${API_KEY}`
+        );
+        const data = await res.json();
+        if (!data.data || data.data.length === 0) {
+          document.getElementById("error").textContent =
+            "No matching companies found.";
           return;
         }
 
-        const url = `https://api.twelvedata.com/symbol_search?symbol=${query}&apikey=${apiKey}`;
-        try {
-          const response = await fetch(url);
-          const data = await response.json();
-
-          if (!data || !data.data || data.data.length === 0) {
-            document.getElementById("error").textContent =
-              "No matching companies found.";
-            return;
-          }
-
-          const sorted = data.data.sort((a, b) => {
-            const aUS = a.symbol.endsWith(".US") ? -1 : 1;
-            const bUS = b.symbol.endsWith(".US") ? -1 : 1;
-            return aUS - bUS;
-          });
-
-          for (const entry of sorted) {
+        data.data
+          .sort((a, b) => (a.symbol.endsWith(".US") ? -1 : 1))
+          .forEach((entry) => {
             const opt = document.createElement("option");
             opt.value = entry.symbol;
             opt.textContent = `${entry.instrument_name} (${entry.symbol})`;
-            select.appendChild(opt);
-          }
+            sel.appendChild(opt);
+          });
 
-          select.style.display = "inline-block";
-          fetchStockData();
-        } catch (err) {
-          console.error(err);
-          document.getElementById("error").textContent =
-            "Error fetching company list.";
-        }
+        sel.style.display = "inline-block";
+        fetchStockData();
       }
 
+      // 2) Fetch & display stock data
       async function fetchStockData() {
         const symbol = document.getElementById("symbolSelect").value;
         const days = document.getElementById("dayRange").value;
-        const url = `https://api.twelvedata.com/time_series?symbol=${symbol}&interval=1day&outputsize=${days}&apikey=${apiKey}`;
+        if (!symbol) return;
 
         document.getElementById("spinner").style.display = "block";
         document.getElementById("error").textContent = "";
         document.getElementById("stockInfo").style.display = "none";
 
-        try {
-          const response = await fetch(url);
-          const data = await response.json();
-          document.getElementById("spinner").style.display = "none";
-
-          if (data.status === "error" || !data.values) {
-            document.getElementById("error").textContent =
-              "Error: " + (data.message || "Invalid symbol or API error.");
-            return;
-          }
-
-          const labels = data.values.map((item) => item.datetime).reverse();
-          const prices = data.values
-            .map((item) => parseFloat(item.close))
-            .reverse();
-
-          document.getElementById("stockName").textContent = `${
-            data.meta.symbol
-          } — ${data.meta.name || ""}`;
-          document.getElementById(
-            "stockDetails"
-          ).textContent = `Last Updated: ${data.meta.last_updated || "N/A"}`;
-          document.getElementById("stockPrice").textContent = `Latest Price: $${
-            prices[prices.length - 1]
-          }`;
-          document.getElementById("stockInfo").style.display = "block";
-
-          renderChart(labels, prices, data.meta.symbol);
-        } catch (err) {
-          document.getElementById("spinner").style.display = "none";
-          document.getElementById("error").textContent = "Error fetching data.";
+        const res = await fetch(
+          `https://api.twelvedata.com/time_series?symbol=${symbol}&interval=1day&outputsize=${days}&apikey=${API_KEY}`
+        );
+        const data = await res.json();
+        document.getElementById("spinner").style.display = "none";
+        if (data.status === "error" || !data.values) {
+          document.getElementById("error").textContent =
+            "Error: " + (data.message || "API error");
+          return;
         }
+
+        const labels = data.values.map((v) => v.datetime).reverse();
+        const prices = data.values.map((v) => parseFloat(v.close)).reverse();
+
+        document.getElementById("stockName").textContent =
+          data.meta.symbol + " — " + (data.meta.name || "");
+        document.getElementById("stockDetails").textContent = `Last Updated: ${
+          data.meta.last_updated || ""
+        }`;
+        document.getElementById("stockPrice").textContent = `Latest Price: $${
+          prices[prices.length - 1]
+        }`;
+        document.getElementById("stockInfo").style.display = "block";
+
+        renderChart(labels, prices, data.meta.symbol);
       }
 
-      function renderChart(labels, dataPoints, symbol) {
+      // 3) Render chart
+      function renderChart(labels, dataPts, symbol) {
         const ctx = document.getElementById("stockChart").getContext("2d");
         if (chart) chart.destroy();
         chart = new Chart(ctx, {
           type: "line",
           data: {
-            labels: labels,
+            labels,
             datasets: [
               {
                 label: `${symbol} Closing Prices`,
-                data: dataPoints,
-                borderColor: "rgba(75, 192, 192, 1)",
-                backgroundColor: "rgba(75, 192, 192, 0.2)",
+                data: dataPts,
+                borderColor: "rgba(75,192,192,1)",
+                backgroundColor: "rgba(75,192,192,0.2)",
                 fill: true,
                 tension: 0.3,
               },
@@ -217,13 +230,23 @@
           },
         });
       }
-      // Auto-refresh every 30 seconds
+
+      // 4) Auto-refresh every 60 seconds
       setInterval(() => {
-        const symbol = document.getElementById("symbolSelect").value;
-        if (symbol) {
-          fetchStockData(); // re-fetch latest price and chart
+        if (document.getElementById("symbolSelect").value) {
+          fetchStockData();
         }
-      }, 60000); // 30000 ms = 60 seconds
+      }, 60000);
+
+      // 5) Logout
+      document.getElementById("logoutButton").addEventListener("click", () => {
+        console.log("Logout clicked");
+        firebase
+          .auth()
+          .signOut()
+          .then(() => (window.location.href = "index.html"))
+          .catch((e) => alert("Logout failed: " + e.message));
+      });
     </script>
   </body>
 </html>
