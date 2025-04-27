@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    />
+    <title>Manage My Subscriptions</title>
+  </head>
+
+  <body class="container mt-4">
+    <h1 class="text-center">Track Your Subscriptions</h1>
+
+    <div class="mb-3">
+      <label for="subscriptionName" class="form-label">Subscription Name</label>
+      <input type="text" id="subscriptionName" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+      <label for="subscriptionPrice" class="form-label">Price ($)</label>
+      <input type="text" id="subscriptionPrice" class="form-control" />
+    </div>
+
+    <h2>Your Subscriptions</h2>
+    <ul id="subscriptionList" class="list-group mb-3"></ul>
+
+    <h3 id="totalSubscriptions">Total Subscriptions: 0</h3>
+    <h3 id="totalMoney">Total Money Spent: $0.00</h3>
+
+    <button id="addSubscription" class="btn btn-primary w-100">
+      Add a Subscription
+    </button>
+
+    <script>
+      var count = 0;
+      var money = 0;
+
+      function addSubscription() {
+        var name = document.getElementById("subscriptionName").value;
+        var price = document.getElementById("subscriptionPrice").value;
+
+        if (name === "" || price === "") {
+          alert("Enter both name and price");
+          return;
+        }
+
+        price = parseFloat(price);
+        if (isNaN(price) || price < 0) {
+          alert("Enter a valid price");
+          return;
+        }
+
+        var item = document.createElement("li");
+        item.className =
+          "list-group-item d-flex justify-content-between align-items-center";
+        item.innerText = name + " - $" + price.toFixed(2);
+
+        var deleteBtn = document.createElement("button");
+        deleteBtn.innerText = "X";
+        deleteBtn.className = "btn btn-danger btn-sm";
+        deleteBtn.onclick = function () {
+          item.remove();
+          count--;
+          money -= price;
+          updateTotals();
+        };
+
+        item.appendChild(deleteBtn);
+        document.getElementById("subscriptionList").appendChild(item);
+
+        count++;
+        money += price;
+        updateTotals();
+
+        document.getElementById("subscriptionName").value = "";
+        document.getElementById("subscriptionPrice").value = "";
+      }
+
+      function updateTotals() {
+        document.getElementById("totalSubscriptions").innerText =
+          "Total Subscriptions: " + count;
+        document.getElementById("totalMoney").innerText =
+          "Total Money Spent: $" + money.toFixed(2);
+      }
+
+      document.getElementById("addSubscription").onclick = addSubscription;
+    </script>
+  </body>
+</html>
