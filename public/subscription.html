@@ -12,6 +12,7 @@
 
   <body class="container mt-4">
     <h1 class="text-center">Track Your Subscriptions</h1>
+    <button id="logoutButton" class="btn btn-danger float-end">Logout</button>
 
     <div class="mb-3">
       <label for="subscriptionName" class="form-label">Subscription Name</label>
@@ -24,6 +25,7 @@
     </div>
 
     <h2>Your Subscriptions</h2>
+
     <ul id="subscriptionList" class="list-group mb-3"></ul>
 
     <h3 id="totalSubscriptions">Total Subscriptions: 0</h3>
@@ -32,39 +34,101 @@
     <button id="addSubscription" class="btn btn-primary w-100">
       Add a Subscription
     </button>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
+    <style>
+      #logoutButton {
+        margin-bottom: 25px;
+      }
+    </style>
     <script>
-      var count = 0;
-      var money = 0;
+      const firebaseConfig = {
+        apiKey: "AIzaSyAlShebeuXfNZEEGnb2PyUex6zPlgEoX80",
+        authDomain: "lucre-89b0e.firebaseapp.com",
+        projectId: "lucre-89b0e",
+        storageBucket: "lucre-89b0e.appspot.com",
+        messagingSenderId: "150944537104",
+        appId: "1:150944537104:web:8facb0a709e8ccef04c895",
+      };
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+
+      let email = null;
+      let count = 0;
+      let money = 0;
+
+      firebase.auth().onAuthStateChanged((user) => {
+        if (!user) {
+          window.location.href = "index.html";
+        } else {
+          email = user.email;
+          loadSubscriptions(); // ✅ load only after user is confirmed
+          document.getElementById("logoutButton").style.display = "block";
+        }
+      });
+
+      function loadSubscriptions() {
+        fetch(`/get-subscriptions?email=${encodeURIComponent(email)}`)
+          .then((res) => res.json())
+          .then((data) => {
+            data.forEach((sub) => {
+              renderSubscription(sub.name, sub.price);
+            });
+          })
+          .catch((err) => {
+            console.error("Error loading subscriptions:", err);
+          });
+      }
 
       function addSubscription() {
-        var name = document.getElementById("subscriptionName").value;
-        var price = document.getElementById("subscriptionPrice").value;
+        const name = document.getElementById("subscriptionName").value;
+        const price = parseFloat(
+          document.getElementById("subscriptionPrice").value
+        );
 
-        if (name === "" || price === "") {
-          alert("Enter both name and price");
+        if (!name || isNaN(price) || price < 0) {
+          alert("Enter a valid name and price");
           return;
         }
+        fetch("/save-subscription", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, name, price }),
+        })
+          .then((res) => res.text())
+          .then((msg) => {
+            console.log("🟢 Server responded:", msg);
+            renderSubscription(name, price);
+          });
+        document.getElementById("subscriptionName").value = "";
+        document.getElementById("subscriptionPrice").value = "";
+      }
 
-        price = parseFloat(price);
-        if (isNaN(price) || price < 0) {
-          alert("Enter a valid price");
-          return;
-        }
-
-        var item = document.createElement("li");
+      function renderSubscription(name, price) {
+        const item = document.createElement("li");
         item.className =
           "list-group-item d-flex justify-content-between align-items-center";
         item.innerText = name + " - $" + price.toFixed(2);
 
-        var deleteBtn = document.createElement("button");
+        const deleteBtn = document.createElement("button");
         deleteBtn.innerText = "X";
         deleteBtn.className = "btn btn-danger btn-sm";
         deleteBtn.onclick = function () {
-          item.remove();
-          count--;
-          money -= price;
-          updateTotals();
+          fetch("/delete-subscription", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, name }),
+          })
+            .then((res) => res.text())
+            .then((msg) => {
+              console.log(msg);
+              item.remove();
+              count--;
+              money -= price;
+              updateTotals();
+            });
         };
 
         item.appendChild(deleteBtn);
@@ -73,9 +137,6 @@
         count++;
         money += price;
         updateTotals();
-
-        document.getElementById("subscriptionName").value = "";
-        document.getElementById("subscriptionPrice").value = "";
       }
 
       function updateTotals() {
@@ -86,6 +147,16 @@
       }
 
       document.getElementById("addSubscription").onclick = addSubscription;
+
+      document.getElementById("logoutButton").addEventListener("click", () => {
+        firebase
+          .auth()
+          .signOut()
+          .then(() => {
+            localStorage.removeItem("loggedInEmail");
+            window.location.href = "index.html";
+          });
+      });
     </script>
   </body>
 </html>

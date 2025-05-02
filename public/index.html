@@ -162,6 +162,7 @@
             .auth()
             .signInWithEmailAndPassword(email, password)
             .then(() => {
+              localStorage.setItem("loggedInEmail", email); // ✅ Save email for future use
               window.location.href = "homePage.html";
             })
             .catch((err) => {

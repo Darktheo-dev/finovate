@@ -18,7 +18,6 @@
     <!-- Firebase Config -->
     <script>
       const firebaseConfig = {
-        // 🔑 Replace with your actual Firebase config
         apiKey: "AIzaSyAlShebeuXfNZEEGnb2PyUex6zPlgEoX80",
         authDomain: "lucre-89b0e.firebaseapp.com",
         projectId: "lucre-89b0e",
@@ -26,7 +25,6 @@
         messagingSenderId: "150944537104",
         appId: "1:150944537104:web:8facb0a709e8ccef04c895",
       };
-
       firebase.initializeApp(firebaseConfig);
     </script>
 
@@ -129,6 +127,7 @@
           .auth()
           .signOut()
           .then(() => {
+            localStorage.removeItem("loggedInEmail"); // ✅ Clear saved email
             window.location.href = "index.html";
           })
           .catch((error) => {

@@ -4,21 +4,21 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const sqlite3 = require("sqlite3").verbose();
 const fetch = require("node-fetch"); // For Node < 18
-// require("dotenv").config(); // Uncomment to use .env for secrets
-
 const app = express();
 const db = new sqlite3.Database("users.db");
 const port = 3000;
 
-// Replace this with your real API key or use process.env.STOCK_API_KEY
+// Replace with your real API key or use process.env.STOCK_API_KEY
 const STOCK_API_KEY = "2009faef44064e509bef9096d28efc4e";
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json()); // ✅ for handling JSON requests
 app.use(express.static("public"));
 
-// Create or recreate users table
+// Create tables
 db.serialize(() => {
+  // Drop and recreate users table
   db.run(`DROP TABLE IF EXISTS users`);
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
@@ -29,6 +29,16 @@ db.serialize(() => {
       email TEXT UNIQUE,
       password TEXT,
       dob TEXT
+    )
+  `);
+
+  // ✅ Create subscriptions table if not exists
+  db.run(`
+    CREATE TABLE IF NOT EXISTS subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT,
+      name TEXT,
+      price REAL
     )
   `);
 });
@@ -81,9 +91,56 @@ app.post("/index", (req, res) => {
   );
 });
 
-// Route: Logout
-app.post("/logout", (req, res) => {
-  res.redirect("/index.html");
+// ✅ Route: Save a subscription
+app.post("/save-subscription", express.json(), (req, res) => {
+  const { email, name, price } = req.body;
+  console.log("🔥 Received:", req.body);
+
+  if (!email || !name || !price) {
+    console.log("❌ Missing one or more fields.");
+    return res.status(400).send("Missing data");
+  }
+
+  db.run(
+    `INSERT INTO subscriptions (email, name, price) VALUES (?, ?, ?)`,
+    [email, name, price],
+    function (err) {
+      if (err) {
+        console.error("❌ DB Error:", err.message);
+        return res.status(500).send("Failed to save subscription.");
+      }
+      console.log("✅ Subscription saved:", name);
+      res.send("Subscription saved.");
+    }
+  );
+});
+// ✅ Route: Get subscriptions for an email
+app.get("/get-subscriptions", (req, res) => {
+  const { email } = req.query;
+  console.log("Fetching subscriptions for:", email); // 🔍 debug line
+
+  db.all(
+    `SELECT name, price FROM subscriptions WHERE email = ?`,
+    [email],
+    (err, rows) => {
+      if (err) return res.status(500).send("Failed to fetch subscriptions.");
+      res.json(rows);
+    }
+  );
+});
+
+// ✅ Route: Delete a subscription
+app.post("/delete-subscription", (req, res) => {
+  const { email, name } = req.body;
+
+  db.run(
+    `DELETE FROM subscriptions WHERE email = ? AND name = ?`,
+    [email, name],
+    function (err) {
+      if (err) return res.status(500).send("Error deleting subscription.");
+      res.send("Subscription deleted.");
+    }
+  );
 });
 
 // Route: Proxy for stock API (hides API key)

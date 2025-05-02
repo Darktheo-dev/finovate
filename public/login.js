@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   const loginButton = document.getElementById("loginButton");
   const alertBox = document.getElementById("loginAlert");
-
+  localStorage.setItem("loggedInEmail", email); // replace `email` with actual variable
   function showAlert(message) {
     alertBox.textContent = message;
     alertBox.style.display = "block";
