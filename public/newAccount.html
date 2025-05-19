@@ -17,12 +17,47 @@
 
     <!-- Your Firebase Config -->
     <script src="firebase-config.js"></script>
+
+    <!-- Custom Style for Matching Lucre Login -->
+    <style>
+      body.bg-light {
+        background-color: #6c7a89 !important; /* match login background */
+      }
+
+      form {
+        background-color: #f1f5fb; /* match login white box */
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .form-control {
+        background-color: #ffffff;
+        border-color: #ccc;
+      }
+
+      .form-control:focus {
+        background-color: #ffffff;
+        border-color: #1a237e;
+        box-shadow: 0 0 0 0.2rem rgba(26, 35, 126, 0.25);
+      }
+
+      .btn-primary {
+        background-color: #1a237e;
+        border-color: #1a237e;
+      }
+
+      .btn-primary:hover {
+        background-color: #3949ab;
+        border-color: #3949ab;
+      }
+    </style>
   </head>
 
   <body
     class="d-flex flex-column align-items-center justify-content-center vh-100 bg-light"
   >
-    <h1 class="text-center fw-bold mb-4">Create Account</h1>
+    <h1 class="text-center fw-bold mb-4 text-white">Create Account</h1>
 
     <form id="registerForm" class="row g-3 needs-validation w-75" novalidate>
       <div class="col-md-6">
@@ -71,7 +106,7 @@
       </div>
     </form>
 
-    <!-- Firebase Signup Script (after DOM is ready) -->
+    <!-- Firebase Signup Script -->
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         const form = document.getElementById("registerForm");
