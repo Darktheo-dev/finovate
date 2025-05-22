@@ -28,7 +28,6 @@
       firebase.initializeApp(firebaseConfig);
     </script>
 
-    <!-- Inline Styles -->
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -84,6 +83,31 @@
         right: 20px;
         font-size: 14px;
       }
+
+      /* Spinner Styles */
+      #spinner {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+      }
+
+      .loader {
+        width: 40px;
+        height: 40px;
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
     </style>
   </head>
 
@@ -107,12 +131,14 @@
       </button>
     </div>
 
+    <!-- Spinner -->
+    <div id="spinner"><div class="loader"></div></div>
+
     <!-- Scripts -->
     <script>
-      // Show user's displayName or fallback to email
+      // Show greeting
       firebase.auth().onAuthStateChanged((user) => {
         const greeting = document.getElementById("Homepage_greeting");
-
         if (user) {
           const name = user.displayName || user.email;
           greeting.textContent = `Welcome back, ${name}!`;
@@ -121,13 +147,13 @@
         }
       });
 
-      // Logout logic
+      // Logout
       document.getElementById("logoutButton").addEventListener("click", () => {
         firebase
           .auth()
           .signOut()
           .then(() => {
-            localStorage.removeItem("loggedInEmail"); // ✅ Clear saved email
+            localStorage.removeItem("loggedInEmail");
             window.location.href = "index.html";
           })
           .catch((error) => {
@@ -135,14 +161,28 @@
           });
       });
 
-      // Navigation
+      // Navigation + Spinner
       function goToSubscriptions() {
-        window.location.href = "subscription.html";
+        document.getElementById("spinner").style.display = "block";
+        setTimeout(() => {
+          window.location.href = "subscription.html";
+        }, 500);
       }
 
       function goToStocks() {
-        window.location.href = "stocks.html";
+        document.getElementById("spinner").style.display = "block";
+        setTimeout(() => {
+          window.location.href = "stocks.html";
+        }, 500);
       }
+
+      // ✅ Fix: Hide spinner even if back button is used
+      window.addEventListener("pageshow", () => {
+        const spinner = document.getElementById("spinner");
+        if (spinner) {
+          spinner.style.display = "none";
+        }
+      });
     </script>
   </body>
 </html>

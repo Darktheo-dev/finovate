@@ -39,6 +39,7 @@
         align-items: center;
         justify-content: center;
       }
+
       .login-row {
         width: 100%;
         max-width: 900px;
@@ -51,9 +52,11 @@
         padding-bottom: 200px;
         height: auto;
       }
+
       .form-column {
         padding: 20px;
       }
+
       .rectangle {
         background: #e8f0fe;
         padding: 30px;
@@ -61,11 +64,37 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         align-items: center;
       }
+
       #loginAlert {
         margin-bottom: 15px;
       }
+
       #logoutButton {
         display: none; /* hide on login page */
+      }
+
+      #spinner {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+      }
+
+      .loader {
+        width: 40px;
+        height: 40px;
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
       }
     </style>
   </head>
@@ -133,11 +162,15 @@
       </div>
     </div>
 
+    <!-- Spinner -->
+    <div id="spinner"><div class="loader"></div></div>
+
     <!-- LOGIN SCRIPT -->
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         const loginBtn = document.getElementById("loginButton");
         const alertBox = document.getElementById("loginAlert");
+        const spinner = document.getElementById("spinner");
 
         function showAlert(msg) {
           alertBox.textContent = msg;
@@ -147,26 +180,27 @@
         loginBtn.addEventListener("click", (e) => {
           e.preventDefault();
           alertBox.style.display = "none";
+          spinner.style.display = "block"; // Show spinner
 
           const email = document.getElementById("email").value.trim();
           const password = document.getElementById("password").value;
 
           if (!email || !password) {
             showAlert(" Please enter both email and password.");
+            spinner.style.display = "none"; // Hide spinner if input is missing
             return;
           }
-
-          // Debug: check Firebase
-          console.log("Firebase apps:", firebase.apps);
 
           firebase
             .auth()
             .signInWithEmailAndPassword(email, password)
             .then(() => {
-              localStorage.setItem("loggedInEmail", email); // ✅ Save email for future use
+              localStorage.setItem("loggedInEmail", email);
+              spinner.style.display = "none"; // Hide spinner on success
               window.location.href = "homePage.html";
             })
             .catch((err) => {
+              spinner.style.display = "none"; // Hide spinner on error
               showAlert(" Your username or password is incorrect");
             });
         });
