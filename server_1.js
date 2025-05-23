@@ -94,7 +94,7 @@ app.post("/index", (req, res) => {
 // ✅ Route: Save a subscription
 app.post("/save-subscription", express.json(), (req, res) => {
   const { email, name, price } = req.body;
-  console.log("🔥 Received:", req.body);
+  console.log(" Received:", req.body);
 
   if (!email || !name || !price) {
     console.log("❌ Missing one or more fields.");
@@ -109,7 +109,7 @@ app.post("/save-subscription", express.json(), (req, res) => {
         console.error("❌ DB Error:", err.message);
         return res.status(500).send("Failed to save subscription.");
       }
-      console.log("✅ Subscription saved:", name);
+      console.log(" Subscription saved:", name);
       res.send("Subscription saved.");
     }
   );
