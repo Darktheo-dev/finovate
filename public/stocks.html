@@ -90,6 +90,21 @@
           transform: rotate(360deg);
         }
       }
+            .predict-btn {
+        background-color: #28a745;
+        color: white;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 1rem;
+        margin: 10px 0;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+      .predict-btn:hover {
+        background-color: #218838;
+      }
+
     </style>
   </head>
   <body>
@@ -99,6 +114,12 @@
 
       <!-- Header -->
       <h1>Search for a stock</h1>
+
+      <!-- Predictor Button -->
+<a href="http://localhost:5000/predict" target="_blank">
+  <button class="predict-btn">🔮 Predict Your Investments</button>
+</a>
+
 
       <!-- Search -->
       <input type="text" id="searchInput" placeholder="Search for Company" />
