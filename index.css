@@ -6,17 +6,20 @@
 
 body {
   font-family: 'Poppins', sans-serif;
-  background-color: #e6eaf3; /* Light slate blue/gray to contrast the dark navy logo */
+  background-color: #e6eaf3;
   margin: 0;
-  padding: 0;
-  height: 100vh;
+  padding: 40px 0;
   display: flex;
   justify-content: center;
-  align-items: center;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 .container {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* Logo */
@@ -34,6 +37,7 @@ body {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   text-align: center;
   animation: fadeInUp 0.8s ease;
+  margin-bottom: 40px;
 }
 
 /* Greeting */
@@ -46,8 +50,8 @@ body {
 
 /* Inputs */
 input {
-  width: 100%;        /* full width of parent */
-  padding: 14px 16px; /* keep padding */
+  width: 100%;
+  padding: 14px 16px;
   margin: 12px 0;
   background-color: #f9f9f9;
   border: 1px solid #ccc;
@@ -55,7 +59,6 @@ input {
   font-size: 15px;
   transition: border-color 0.3s ease;
 }
-
 
 input:focus {
   border-color: #4b6cb7;
@@ -81,17 +84,32 @@ button:hover {
   transform: scale(1.02);
 }
 
-/* Link */
-#New_account {
+/* Links */
+#New_account, #about_us, .demo-link {
   display: block;
-  margin-top: 20px;
+  margin-top: 10px;
   color: #4b6cb7;
   font-size: 14px;
   text-decoration: none;
 }
 
-#New_account:hover {
+#New_account:hover,
+#about_us:hover,
+.demo-link:hover {
   text-decoration: underline;
+}
+
+/* Demo Page Styles */
+ul {
+  text-align: left;
+  margin-top: 20px;
+  padding-left: 20px;
+}
+
+.result-text {
+  margin-top: 20px;
+  font-weight: bold;
+  color: green;
 }
 
 /* Animation */
@@ -105,15 +123,3 @@ button:hover {
     transform: translateY(0);
   }
 }
-#about_us {
-  display: block;
-  margin-top: 10px;
-  color: #4b6cb7;
-  font-size: 14px;
-  text-decoration: none;
-}
-
-#about_us:hover {
-  text-decoration: underline;
-}
-
