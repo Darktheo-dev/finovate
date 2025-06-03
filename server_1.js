@@ -161,6 +161,10 @@ app.get("/api/stock", async (req, res) => {
   }
 });
 
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/public/predict.html");
+});
+
 // Start the server
 app.listen(port, () => {
   console.log("Lucre server running at http://localhost:" + port);
