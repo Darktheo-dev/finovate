@@ -6,17 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Stocks</title>
 
-    <!-- 1) External libraries -->
+    <!-- External libraries -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="stock-config.js"></script>
     <script src="main.js"></script>
-
-    <!-- 2) Configuration (git‑ignored) -->
     <script src="firebase-config.js"></script>
 
-    <!-- 3) Styles -->
+    <!-- Styles -->
     <style>
       body {
         font-family: Arial;
@@ -90,20 +88,6 @@
           transform: rotate(360deg);
         }
       }
-      .predict-btn {
-        background-color: #28a745;
-        color: white;
-        padding: 10px 16px;
-        border: none;
-        border-radius: 6px;
-        font-size: 1rem;
-        margin: 10px 0;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-      }
-      .predict-btn:hover {
-        background-color: #218838;
-      }
     </style>
   </head>
   <body>
@@ -113,11 +97,6 @@
 
       <!-- Header -->
       <h1>Search for a stock</h1>
-
-      <!-- Predictor Button -->
-      <a href="http://localhost:3000/predict.html" target="_blank">
-        <button class="predict-btn">Future Projections</button>
-      </a>
 
       <!-- Search -->
       <input type="text" id="searchInput" placeholder="Search for Company" />
@@ -153,12 +132,9 @@
 
     <!-- Main Script -->
     <script>
-      // Debug: confirm Firebase is initialized
       console.log("Firebase apps:", firebase.apps);
-
       let chart;
 
-      // 1) Search companies
       async function searchCompanies() {
         const q = document.getElementById("searchInput").value.trim();
         const sel = document.getElementById("symbolSelect");
@@ -189,7 +165,6 @@
         fetchStockData();
       }
 
-      // 2) Fetch & display stock data
       async function fetchStockData() {
         const symbol = document.getElementById("symbolSelect").value;
         const days = document.getElementById("dayRange").value;
@@ -226,7 +201,6 @@
         renderChart(labels, prices, data.meta.symbol);
       }
 
-      // 3) Render chart
       function renderChart(labels, dataPts, symbol) {
         const ctx = document.getElementById("stockChart").getContext("2d");
         if (chart) chart.destroy();
@@ -255,14 +229,12 @@
         });
       }
 
-      // 4) Auto-refresh every 60 seconds
       setInterval(() => {
         if (document.getElementById("symbolSelect").value) {
           fetchStockData();
         }
       }, 60000);
 
-      // 5) Logout
       document.getElementById("logoutButton").addEventListener("click", () => {
         console.log("Logout clicked");
         firebase
