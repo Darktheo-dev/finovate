@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lucre - Mission Parameters</title>
+    <style>
+      body {
+        background: #111;
+        color: white;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        text-align: center;
+        padding: 40px 20px;
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: #1a1a1a;
+        border-radius: 20px;
+        padding: 40px;
+        border: 1px solid #333;
+      }
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+      }
+      p {
+        font-size: 1.1rem;
+        color: #aaa;
+        max-width: 600px;
+        margin: 0 auto 30px auto;
+      }
+      .param-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+        text-align: left;
+      }
+      .param-group {
+        display: flex;
+        flex-direction: column;
+      }
+      .param-group label {
+        font-size: 1rem;
+        color: #ccc;
+        margin-bottom: 10px;
+      }
+      .param-group input {
+        background: #222;
+        border: 1px solid #444;
+        color: white;
+        font-size: 1.2rem;
+        padding: 12px;
+        border-radius: 8px;
+      }
+      .param-group span {
+        font-size: 0.8rem;
+        color: #777;
+        margin-top: 5px;
+      }
+      button {
+        padding: 16px 32px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        background: #007aff;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        margin-top: 30px;
+        transition: transform 0.2s;
+      }
+      button:hover {
+        transform: scale(1.05);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Mission Parameter Configuration</h1>
+      <p>
+        Design your own rocket by modifying the first-stage parameters below.
+        Your design will be simulated against a nominal Falcon 9.
+      </p>
+
+      <div class="param-form">
+        <div class="param-group">
+          <label for="thrust">Sea Level Thrust (kN)</label>
+          <input type="number" id="thrust" value="7607" step="100" />
+          <span>Default: 7607 (Falcon 9)</span>
+        </div>
+        <div class="param-group">
+          <label for="dry_mass">Dry Mass (kg)</label>
+          <input type="number" id="dry_mass" value="25600" step="1000" />
+          <span>Default: 25600 (Falcon 9)</span>
+        </div>
+        <div class="param-group">
+          <label for="fuel_mass">Propellant Mass (kg)</label>
+          <input type="number" id="fuel_mass" value="395700" step="10000" />
+          <span>Default: 395700 (Falcon 9)</span>
+        </div>
+        <div class="param-group">
+          <label for="burn_duration">Burn Duration (s)</label>
+          <input type="number" id="burn_duration" value="162" step="1" />
+          <span>Default: 162 (Falcon 9)</span>
+        </div>
+      </div>
+
+      <button onclick="runSimulation()">Launch Comparative Simulation</button>
+    </div>
+
+    <script>
+      function runSimulation() {
+        const customParams = {
+          thrust: parseFloat(document.getElementById("thrust").value) || 7607,
+          dry_mass:
+            parseFloat(document.getElementById("dry_mass").value) || 25600,
+          fuel_mass:
+            parseFloat(document.getElementById("fuel_mass").value) || 395700,
+          burn_duration:
+            parseFloat(document.getElementById("burn_duration").value) || 162,
+        };
+
+        // Set the mode and the parameters for the dashboard page
+        localStorage.setItem("simMode", "comparative");
+        localStorage.setItem(
+          "customRocketParams",
+          JSON.stringify(customParams)
+        );
+        window.location.href = "dashboard.html";
+      }
+    </script>
+  </body>
+</html>

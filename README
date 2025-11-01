@@ -1,0 +1,99 @@
+# Lucre: Real-Time Rocket Telemetry Dashboard
+
+Lucre is a full-stack web application that provides a real-time telemetry dashboard for a simulated Falcon 9 rocket launch. It is built with Node.js, Express, and Socket.IO to deliver a high-frequency, low-latency data stream from a server-side physics simulation to any web client.
+
+---
+
+## Project Features
+
+-   **Live Data Visualization**: The dashboard shows live data from the simulated rocket launch, such as altitude, speed, and fuel levels. The display updates four times every second for a smooth and responsive experience.
+
+-   **Realistic Physics Simulation**: The server runs a physics model that calculates the rocket's flight path. This model accounts for changing engine thrust, the constant pull of gravity, and the rocket getting lighter as it burns fuel.
+
+-   **Predictive Anomaly Detection**: The application runs a "perfect" simulation in the background and compares it to the main simulation. If it detects a problem, like the rocket burning fuel too quickly, it displays a warning message on the screen.
+
+---
+
+## Technology Used
+
+-   **Backend**: Node.js, Express.js
+-   **Real-Time Communication**: Socket.IO
+-   **Frontend**: HTML5, CSS3, JavaScript
+
+---
+
+## How to Run This Project
+
+### Prerequisites
+
+-   You will need Node.js and npm installed on your computer.
+
+### Installation and Launch
+
+1.  **Clone the repository:**
+    ```bash
+    git clone [https://github.com/YOUR_USERNAME/lucre-telemetry.git](https://github.com/YOUR_USERNAME/lucre-telemetry.git)
+    ```
+2.  **Go into the project folder:**
+    ```bash
+    cd lucre-telemetry
+    ```
+3.  **Install the necessary packages:**
+    ```bash
+    npm install
+    ```
+4.  **Start the server:**
+    ```bash
+    node server.js
+    ```
+5.  Open your web browser and navigate to `http://localhost:3000` to view the application.
+
+---
+
+## How It Works: The Physics Engine Explained
+
+The heart of this project is the physics engine that simulates the rocket's flight. Here is a simple breakdown of how it calculates the rocket's movement.
+
+### The Two Main Forces
+
+At any moment, the rocket is primarily affected by two major forces:
+
+1.  **Thrust**: The powerful push from the engines that propels the rocket forward.
+2.  **Gravity**: The force that constantly pulls the rocket back down to Earth.
+
+The challenge is that these forces don't always point in opposite directions. While gravity always pulls straight down, the rocket's engines start to tilt the vehicle sideways after launch to gain horizontal speed. This is known as a "gravity turn."
+
+### Calculating the Net Force Correctly
+
+To accurately determine the rocket's path, we cannot simply subtract gravity from thrust. We need to figure out the true effect of the angled thrust.
+
+To do this, we split the engine's thrust into two separate parts:
+* A purely **upward** part that directly fights gravity.
+* A purely **sideways** part that pushes the rocket across the sky.
+
+
+
+We use the following basic trigonometry to find these parts, where `pitch` is the rocket's angle from pointing straight up:
+
+* `Upward_Thrust = Total_Thrust * cos(pitch)`
+* `Sideways_Thrust = Total_Thrust * sin(pitch)`
+
+Now that we have everything in simple up/down and sideways terms, the calculation becomes easy:
+
+1.  **Total Upward Force** = `Upward_Thrust` - `Gravity`
+    * This tells us the final upward push on the rocket after fighting against gravity.
+
+2.  **Total Sideways Force** = `Sideways_Thrust`
+    * This is straightforward, as gravity does not pull sideways.
+
+### From Force to Movement
+
+Once we know the final forces pushing the rocket up and sideways, we use Newton's Second Law ($F=ma$) to calculate its acceleration (how quickly its speed changes).
+
+This entire calculation is repeated every 250 milliseconds. At each step, the engine updates the rocket's speed and position. By doing this very rapidly, the simulation creates the smooth and realistic flight path you see on the dashboard.
+
+---
+
+## License
+
+This project is licensed under the MIT License.

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lucre Finovate - Home</title>
+    <style>
+      body {
+        background: #111;
+        color: white;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        text-align: center;
+        padding: 40px 20px;
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+      }
+      p.intro {
+        font-size: 1.2rem;
+        margin-bottom: 30px;
+        color: #aaa;
+        max-width: 700px;
+      }
+      .briefing-box {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 16px;
+        padding: 30px;
+        margin: 20px 0;
+        max-width: 800px;
+        text-align: left;
+      }
+      .briefing-box h2 {
+        font-size: 1.6rem;
+        margin-bottom: 20px;
+        color: #00aaff;
+        border-bottom: 1px solid #444;
+        padding-bottom: 10px;
+      }
+      .briefing-box h3 {
+        font-size: 1.2rem;
+        color: #fff;
+        margin-top: 20px;
+        margin-bottom: 10px;
+      }
+      .briefing-box p {
+        font-size: 1.05rem;
+        margin-bottom: 15px;
+        line-height: 1.6;
+        color: #ccc;
+      }
+      .briefing-box strong {
+        color: #00ff88;
+        font-weight: 600;
+      }
+      .button-container {
+        display: flex;
+        gap: 20px;
+        margin-top: 30px;
+      }
+      button {
+        padding: 16px 32px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        background: #007aff;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+      button:hover {
+        transform: scale(1.05);
+      }
+      button.secondary {
+        background: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Mission Control Hub</h1>
+    <p class="intro">
+      Choose a simulation path or review the flight profile parameters below.
+      Your objective is to monitor key telemetry streams to understand rocket
+      performance.
+    </p>
+
+    <div class="button-container">
+      <button onclick="runPredictiveSim()">View Predictive Simulation</button>
+      <button class="secondary" onclick="goToParameters()">
+        Design Your Own Rocket
+      </button>
+    </div>
+
+    <div class="briefing-box">
+      <h2>Flight Profile Explained:</h2>
+      <h3>1. The Rocket's Push (Thrust)</h3>
+      <p>
+        Thrust goes **UP** at first, then **DOWN**. The initial increase happens
+        because rocket engines are more powerful in thin air. The later decrease
+        is a deliberate safety maneuver to survive **Max-Q** (peak air pressure)
+        and to manage acceleration ($a = F/m$) as the rocket gets lighter from
+        burning fuel ($m$).
+      </p>
+      <h3>2. The Fuel Plan (Propellant)</h3>
+      <p>
+        The simulation compares the **Actual Propellant** (solid line) to a
+        perfect flight plan, known as a **"Digital Twin"** (dotted line). A key
+        task is to watch for a **deviation**, where the solid line drops below
+        the dotted one, indicating a potential problem.
+      </p>
+      <h3>3. The Results (Flight Dynamics)</h3>
+      <p>
+        This graph shows the rocket's **Altitude** and **Velocity**, which are
+        calculated from the total upward force (Thrust minus Gravity) and the
+        rocket's changing mass. Watch how quickly the velocity climbs as the
+        rocket gets lighter.
+      </p>
+    </div>
+
+    <script>
+      function runPredictiveSim() {
+        // Set the mode for the dashboard to know which simulation to run
+        localStorage.setItem("simMode", "predictive");
+        window.location.href = "dashboard.html";
+      }
+
+      function goToParameters() {
+        window.location.href = "parameters.html";
+      }
+    </script>
+  </body>
+</html>
