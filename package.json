@@ -1,7 +1,27 @@
 {
   "dependencies": {
     "dotenv": "^17.2.3",
+    "express": "^5.2.1",
     "node-fetch": "^2.7.0",
     "socket.io": "^4.8.1"
-  }
+  },
+  "name": "finovate",
+  "version": "1.0.0",
+  "description": "Lucre is a full-stack web application that provides a real-time telemetry dashboard for a simulated Falcon 9 rocket launch. It is built with Node.js, Express, and Socket.IO to deliver a high-frequency, low-latency data stream from a server-side physics simulation to any web client.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Darktheo-dev/finovate.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Darktheo-dev/finovate/issues"
+  },
+  "homepage": "https://github.com/Darktheo-dev/finovate#readme"
 }
