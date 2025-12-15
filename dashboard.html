@@ -3,13 +3,11 @@
   <head>
     <title>Lucre - Mission Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script
-      src="https://cdn.socket.io/4.5.4/socket.io.min.js"
-      crossorigin="anonymous"
-    ></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+
     <style>
+      /* --- CSS Styles (Unchanged but minified for cleanliness) --- */
       * {
         margin: 0;
         padding: 0;
@@ -19,7 +17,7 @@
         background: #0a0a0a;
         color: white;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          monospace;
         text-align: center;
         padding: 20px;
       }
@@ -60,9 +58,13 @@
         border-radius: 16px;
         padding: 25px;
         border: 1px solid #2a2a2a;
+        height: 450px;
+        position: relative;
       }
+      /* Important: Allow canvas to fill parent */
       canvas {
-        height: 400px !important;
+        width: 100% !important;
+        height: 100% !important;
       }
       .stats {
         display: grid;
@@ -74,15 +76,10 @@
         background: linear-gradient(145deg, #252525, #1a1a1a);
         padding: 20px 15px;
         border-radius: 16px;
-        font-size: 1rem;
         text-align: center;
         color: #888;
         border: 1px solid #2a2a2a;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        transition: transform 0.2s;
-      }
-      .stat:hover {
-        transform: translateY(-2px);
       }
       .stat strong {
         display: block;
@@ -111,8 +108,8 @@
         font-size: 1.6rem;
         margin: 20px 0;
         color: #00ff88;
-        transition: color 0.3s ease;
         font-weight: 500;
+        min-height: 1.6rem;
       }
       .anomaly-alert {
         color: #ff3b30 !important;
@@ -152,50 +149,71 @@
   <body>
     <div class="container">
       <h1 id="missionTitle">Mission Dashboard</h1>
-      <div class="phase" id="phase">Initializing Simulation...</div>
+      <div class="phase" id="phase">Initializing Connection...</div>
+
       <div class="stats">
         <div class="stat">Altitude<strong id="altitude">0.0 km</strong></div>
         <div class="stat">Velocity<strong id="velocity">0 m/s</strong></div>
-        <div class="stat">Thrust<strong id="thrust">7607 kN</strong></div>
+        <div class="stat">Thrust<strong id="thrust">0 kN</strong></div>
         <div class="stat">Propellant<strong id="fuel">100.00%</strong></div>
       </div>
+
       <div class="charts-container">
         <div class="chart-wrapper">
           <h2 id="systemsTitle">Propellant Analysis</h2>
           <canvas id="chartSystems"></canvas>
         </div>
         <div class="chart-wrapper">
-          <h2>Flight Dynamics Comparison</h2>
+          <h2>Flight Dynamics</h2>
           <canvas id="chartDynamics"></canvas>
         </div>
       </div>
-      <button onclick="window.location.href='home.html'">Return to Hub</button>
+
+      <button onclick="window.location.reload()">Reset Simulation</button>
     </div>
 
     <script>
       let socket;
 
+      // --- Chart Styling Config ---
       const fontConfig = {
-        title: { font: { size: 13, weight: "500", family: "monospace" } },
-        ticks: { font: { size: 11, family: "monospace" } },
-        legend: { labels: { font: { size: 12, family: "sans-serif" } } },
+        title: {
+          display: true,
+          color: "#999",
+          font: { size: 13, weight: "500", family: "monospace" },
+        },
+        ticks: { color: "#777", font: { size: 11, family: "monospace" } },
+        grid: {
+          color: "rgba(100, 100, 100, 0.2)",
+          lineWidth: 1,
+          borderDash: [5, 5],
+        },
+        border: { display: true, color: "#555", width: 1 },
       };
 
-      const tooltipConfig = {
-        enabled: true,
-        backgroundColor: "rgba(20, 20, 20, 0.95)",
-        titleFont: { size: 13, weight: "bold", family: "monospace" },
-        bodyFont: { size: 12, family: "monospace" },
-        padding: 12,
-        cornerRadius: 6,
-        borderColor: "#444",
-        borderWidth: 1,
-        displayColors: true,
-        callbacks: {
-          title: (tooltipItems) => `T+ ${tooltipItems[0].parsed.x.toFixed(1)}s`,
+      const commonOptions = {
+        animation: false,
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: {
+            labels: { color: "#ccc", usePointStyle: true, boxWidth: 8 },
+          },
+          tooltip: {
+            backgroundColor: "rgba(20, 20, 20, 0.95)",
+            titleFont: { family: "monospace" },
+            bodyFont: { family: "monospace" },
+            borderColor: "#444",
+            borderWidth: 1,
+            callbacks: {
+              title: (items) => `T+ ${items[0].parsed.x.toFixed(1)}s`,
+            },
+          },
         },
       };
 
+      // --- Initialize Charts ---
       const ctxSystems = document
         .getElementById("chartSystems")
         .getContext("2d");
@@ -203,55 +221,25 @@
         type: "line",
         data: { datasets: [] },
         options: {
-          animation: false,
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: { mode: "index", intersect: false },
+          ...commonOptions,
           scales: {
             x: {
               type: "linear",
-              title: {
-                display: true,
-                text: "Mission Time (s)",
-                color: "#999",
-                ...fontConfig.title,
-              },
               min: 0,
-              max: 162,
-              ticks: { color: "#777", stepSize: 20, ...fontConfig.ticks },
-              grid: { color: "rgba(100, 100, 100, 0.2)", lineWidth: 1 },
-              border: { color: "#555", width: 1 },
+              max: 165,
+              title: { ...fontConfig.title, text: "Mission Time (s)" },
+              ticks: fontConfig.ticks,
+              grid: fontConfig.grid,
+              border: fontConfig.border,
             },
             y: {
-              title: {
-                display: true,
-                text: "Propellant %",
-                color: "#999",
-                ...fontConfig.title,
-              },
-              position: "left",
               min: 0,
               max: 100,
-              ticks: { color: "#777", stepSize: 20, ...fontConfig.ticks },
-              grid: { color: "rgba(100, 100, 100, 0.2)", lineWidth: 1 },
-              border: { color: "#555", width: 1 },
+              title: { ...fontConfig.title, text: "Propellant %" },
+              ticks: fontConfig.ticks,
+              grid: fontConfig.grid,
+              border: fontConfig.border,
             },
-          },
-          plugins: {
-            legend: {
-              ...fontConfig.legend,
-              display: true,
-              position: "top",
-              align: "end",
-              labels: {
-                color: "#ccc",
-                usePointStyle: false,
-                boxWidth: 40,
-                boxHeight: 2,
-                padding: 15,
-              },
-            },
-            tooltip: tooltipConfig,
           },
         },
       });
@@ -263,86 +251,59 @@
         type: "line",
         data: { datasets: [] },
         options: {
-          animation: false,
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: { mode: "index", intersect: false },
+          ...commonOptions,
           scales: {
             x: {
               type: "linear",
-              title: {
-                display: true,
-                text: "Mission Time (s)",
-                color: "#999",
-                ...fontConfig.title,
-              },
               min: 0,
-              max: 162,
-              ticks: { color: "#777", stepSize: 20, ...fontConfig.ticks },
-              grid: { color: "rgba(100, 100, 100, 0.2)", lineWidth: 1 },
-              border: { color: "#555", width: 1 },
+              max: 165,
+              title: { ...fontConfig.title, text: "Mission Time (s)" },
+              ticks: fontConfig.ticks,
+              grid: fontConfig.grid,
+              border: fontConfig.border,
             },
             y: {
-              title: {
-                display: true,
-                text: "Altitude (km)",
-                color: "#999",
-                ...fontConfig.title,
-              },
+              type: "linear",
               position: "left",
-              min: 0,
-              max: 100,
-              ticks: { color: "#777", stepSize: 20, ...fontConfig.ticks },
-              grid: { color: "rgba(100, 100, 100, 0.2)", lineWidth: 1 },
-              border: { color: "#555", width: 1 },
+              suggestedMax: 100, // Auto-scale if we go higher
+              title: { ...fontConfig.title, text: "Altitude (km)" },
+              ticks: fontConfig.ticks,
+              grid: fontConfig.grid,
+              border: fontConfig.border,
             },
             y1: {
-              title: {
-                display: true,
-                text: "Velocity (m/s)",
-                color: "#999",
-                ...fontConfig.title,
-              },
+              type: "linear",
               position: "right",
-              min: 0,
-              max: 2500,
-              ticks: { color: "#777", stepSize: 500, ...fontConfig.ticks },
-              grid: {
-                drawOnChartArea: false,
-                color: "rgba(100, 100, 100, 0.2)",
-              },
-              border: { color: "#555", width: 1 },
+              suggestedMax: 2000, // Auto-scale if we go faster
+              title: { ...fontConfig.title, text: "Velocity (m/s)" },
+              ticks: fontConfig.ticks,
+              grid: { drawOnChartArea: false }, // Hide grid for 2nd axis
+              border: fontConfig.border,
             },
-          },
-          plugins: {
-            legend: {
-              ...fontConfig.legend,
-              display: true,
-              position: "top",
-              align: "end",
-              labels: {
-                color: "#ccc",
-                usePointStyle: false,
-                boxWidth: 40,
-                boxHeight: 2,
-                padding: 15,
-              },
-            },
-            tooltip: tooltipConfig,
           },
         },
       });
 
+      // --- Main Logic ---
       window.addEventListener("load", () => {
+        // Safe Socket URL detection
+        const socketUrl =
+          window.location.hostname === "localhost" ||
+          window.location.protocol === "file:"
+            ? "http://localhost:3000"
+            : "/"; // Relative path if hosted normally
+
+        // Check if IO loaded
         if (typeof io === "undefined") {
           document.getElementById("phase").textContent =
-            "Error: Socket.IO not loaded";
+            "Error: Socket.IO Library Failed";
           document.getElementById("phase").style.color = "#ff3b30";
           return;
         }
 
-        socket = io("http://localhost:3000");
+        socket = io(socketUrl);
 
+        // Simulation Mode Setup
         const simMode = localStorage.getItem("simMode") || "predictive";
         const customParams =
           JSON.parse(localStorage.getItem("customRocketParams")) || {};
@@ -351,50 +312,47 @@
           simMode === "predictive"
             ? "Predictive Analysis"
             : "Comparative Analysis";
-        const modeBadge = `<span class="mode-badge mode-${simMode}">${simMode}</span>`;
-        document.getElementById("missionTitle").innerHTML =
-          modeText + modeBadge;
+        document.getElementById(
+          "missionTitle"
+        ).innerHTML = `${modeText} <span class="mode-badge mode-${simMode}">${simMode}</span>`;
 
+        // Initialize Datasets based on Mode
         if (simMode === "predictive") {
           document.getElementById("systemsTitle").textContent =
             "Propellant Anomaly Detection";
           systemsChart.data.datasets = [
             {
-              label: "Actual Propellant (%)",
+              label: "Actual",
               data: [],
               borderColor: "#00d4ff",
-              tension: 0.1,
+              borderWidth: 2,
               pointRadius: 0,
-              borderWidth: 2.5,
             },
             {
-              label: "Nominal Propellant",
+              label: "Nominal",
               data: [],
-              borderColor: "#888",
-              tension: 0.1,
-              pointRadius: 0,
+              borderColor: "#666",
+              borderWidth: 1,
               borderDash: [5, 5],
-              borderWidth: 1.5,
+              pointRadius: 0,
             },
           ];
           dynamicsChart.data.datasets = [
             {
-              label: "Altitude (km)",
+              label: "Altitude",
               data: [],
               borderColor: "#ffaa00",
               yAxisID: "y",
-              tension: 0.1,
+              borderWidth: 2,
               pointRadius: 0,
-              borderWidth: 2.5,
             },
             {
-              label: "Velocity (m/s)",
+              label: "Velocity",
               data: [],
               borderColor: "#ff4466",
               yAxisID: "y1",
-              tension: 0.1,
+              borderWidth: 2,
               pointRadius: 0,
-              borderWidth: 2.5,
             },
           ];
         } else {
@@ -402,98 +360,100 @@
             "Propellant Comparison";
           systemsChart.data.datasets = [
             {
-              label: "Your Rocket (%)",
+              label: "Your Rocket",
               data: [],
               borderColor: "#00d4ff",
-              tension: 0.1,
+              borderWidth: 2,
               pointRadius: 0,
-              borderWidth: 2.5,
             },
             {
-              label: "Falcon 9 (%)",
+              label: "Falcon 9",
               data: [],
-              borderColor: "#888",
-              tension: 0.1,
-              pointRadius: 0,
+              borderColor: "#666",
+              borderWidth: 1,
               borderDash: [5, 5],
-              borderWidth: 1.5,
+              pointRadius: 0,
             },
           ];
           dynamicsChart.data.datasets = [
             {
-              label: "Your Altitude",
+              label: "Your Alt",
               data: [],
               borderColor: "#ffaa00",
               yAxisID: "y",
-              tension: 0.1,
+              borderWidth: 2,
               pointRadius: 0,
-              borderWidth: 2.5,
             },
             {
-              label: "F9 Altitude",
+              label: "F9 Alt",
               data: [],
               borderColor: "rgba(255, 170, 0, 0.4)",
               yAxisID: "y",
-              tension: 0.1,
-              pointRadius: 0,
               borderDash: [5, 5],
-              borderWidth: 1.5,
+              borderWidth: 1,
+              pointRadius: 0,
             },
             {
-              label: "Your Velocity",
+              label: "Your Vel",
               data: [],
               borderColor: "#ff4466",
               yAxisID: "y1",
-              tension: 0.1,
+              borderWidth: 2,
               pointRadius: 0,
-              borderWidth: 2.5,
             },
             {
-              label: "F9 Velocity",
+              label: "F9 Vel",
               data: [],
               borderColor: "rgba(255, 68, 102, 0.4)",
               yAxisID: "y1",
-              tension: 0.1,
-              pointRadius: 0,
               borderDash: [5, 5],
-              borderWidth: 1.5,
+              borderWidth: 1,
+              pointRadius: 0,
             },
           ];
         }
-
         systemsChart.update();
         dynamicsChart.update();
 
+        // --- Socket Events ---
         socket.on("connect", () => {
-          console.log("Connected to server");
+          console.log("Connected to Flight Computer");
           document.getElementById("phase").textContent =
-            "Starting Simulation...";
+            "Standby for Launch...";
           document.getElementById("phase").style.color = "#00ff88";
+          document.getElementById("phase").classList.remove("anomaly-alert");
+
+          // Start the sim immediately on connect
           socket.emit("start-simulation", {
             mode: simMode,
             params: customParams,
           });
+
+          // Clear storage to prevent sticky settings
           localStorage.removeItem("simMode");
           localStorage.removeItem("customRocketParams");
         });
 
         socket.on("data", (d) => {
-          const displayData = d.display;
-          const nominalData = d.nominal;
+          if (!d || !d.display) return; // Safety check
 
+          const { display: disp, nominal: nom } = d;
+
+          // Update DOM
           document.getElementById("altitude").textContent = `${(
-            displayData.altitude / 1000
+            disp.altitude / 1000
           ).toFixed(1)} km`;
           document.getElementById("velocity").textContent = `${Math.round(
-            displayData.velocity
+            disp.velocity
           )} m/s`;
           document.getElementById("thrust").textContent = `${Math.round(
-            displayData.thrust
+            disp.thrust
           )} kN`;
-          document.getElementById(
-            "fuel"
-          ).textContent = `${displayData.fuel.toFixed(2)}%`;
+          document.getElementById("fuel").textContent = `${disp.fuel.toFixed(
+            1
+          )}%`;
 
+          // Phase / Anomaly Text
           const phaseEl = document.getElementById("phase");
           if (d.anomaly) {
             phaseEl.textContent = d.anomaly;
@@ -501,62 +461,54 @@
           } else {
             phaseEl.classList.remove("anomaly-alert");
             phaseEl.textContent = `T+ ${d.time.toFixed(1)}s`;
-            if (d.time < 70) phaseEl.style.color = "#00ff88";
-            else if (displayData.fuel > 0) phaseEl.style.color = "#ff6600";
-            else phaseEl.style.color = "#ff4444";
+            // Color coding based on flight phase
+            if (d.time < 70) phaseEl.style.color = "#00ff88"; // Green (Ascent)
+            else if (disp.fuel > 0)
+              phaseEl.style.color = "#ffaa00"; // Orange (MaxQ/Burn)
+            else phaseEl.style.color = "#ff4444"; // Red (MECO)
           }
+
+          // Push to Charts
+          const t = d.time;
 
           if (simMode === "predictive") {
-            systemsChart.data.datasets[0].data.push({
-              x: d.time,
-              y: displayData.fuel,
-            });
-            systemsChart.data.datasets[1].data.push({
-              x: d.time,
-              y: nominalData.fuel,
-            });
+            systemsChart.data.datasets[0].data.push({ x: t, y: disp.fuel });
+            systemsChart.data.datasets[1].data.push({ x: t, y: nom.fuel });
+
             dynamicsChart.data.datasets[0].data.push({
-              x: d.time,
-              y: displayData.altitude / 1000,
+              x: t,
+              y: disp.altitude / 1000,
             });
             dynamicsChart.data.datasets[1].data.push({
-              x: d.time,
-              y: displayData.velocity,
+              x: t,
+              y: disp.velocity,
             });
           } else {
-            systemsChart.data.datasets[0].data.push({
-              x: d.time,
-              y: displayData.fuel,
-            });
-            systemsChart.data.datasets[1].data.push({
-              x: d.time,
-              y: nominalData.fuel,
-            });
+            systemsChart.data.datasets[0].data.push({ x: t, y: disp.fuel });
+            systemsChart.data.datasets[1].data.push({ x: t, y: nom.fuel });
+
             dynamicsChart.data.datasets[0].data.push({
-              x: d.time,
-              y: displayData.altitude / 1000,
+              x: t,
+              y: disp.altitude / 1000,
             });
             dynamicsChart.data.datasets[1].data.push({
-              x: d.time,
-              y: nominalData.altitude / 1000,
+              x: t,
+              y: nom.altitude / 1000,
             });
             dynamicsChart.data.datasets[2].data.push({
-              x: d.time,
-              y: displayData.velocity,
+              x: t,
+              y: disp.velocity,
             });
-            dynamicsChart.data.datasets[3].data.push({
-              x: d.time,
-              y: nominalData.velocity,
-            });
+            dynamicsChart.data.datasets[3].data.push({ x: t, y: nom.velocity });
           }
 
+          // Efficient Update (No animation)
           systemsChart.update("none");
           dynamicsChart.update("none");
         });
 
         socket.on("disconnect", () => {
-          console.log("Disconnected");
-          document.getElementById("phase").textContent = "Connection Lost";
+          document.getElementById("phase").textContent = "Telemetry Lost";
           document.getElementById("phase").style.color = "#ff3b30";
         });
       });

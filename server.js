@@ -12,18 +12,26 @@ const F9_CONSTANTS = {
   burn_duration: 162, // First stage burn duration (s)
   vacuumThrust: 8227, // Vacuum thrust (kN)
   endThrust: 4800, // Thrust at throttle-down before MECO (kN)
-  maxQTime: 70, // Time of Max-Q, used for thrust profile (s)
+  maxQTime: 70, // Time of Max-Q (s)
+  dragCoef: 0.298, // Approx Cd for Falcon 9
+  area: 10.52, // Cross-sectional area (m^2)
 };
 
 const GRAVITY_MS2 = 9.807;
 const UPDATE_INTERVAL_MS = 250;
 
+// --- Helper: Atmospheric Density (Barometric Formula) ---
+function getAirDensity(altitude) {
+  // Standard atmosphere model (Troposphere/Stratosphere approx)
+  // Sea level density = 1.225 kg/m^3
+  // Scale height = ~8500 meters
+  const rho = 1.225 * Math.exp(-altitude / 8500);
+  return Math.max(0, rho);
+}
+
 // --- Physics tick function ---
 function runPhysicsTick(state, constants) {
-  // Destructure state for easier access
   let { time, altitude, vVert, vHoriz, fuel, downrange } = state;
-
-  // Destructure constants
   const {
     thrust,
     dry_mass,
@@ -32,62 +40,72 @@ function runPhysicsTick(state, constants) {
     vacuumThrust,
     endThrust,
     maxQTime,
+    dragCoef,
+    area,
   } = constants;
 
-  const dt = UPDATE_INTERVAL_MS / 1000; // Time step in seconds
+  const dt = UPDATE_INTERVAL_MS / 1000;
 
-  // --- Fuel and Mass Calculation ---
-  const t_frac = time / burn_duration;
-  fuel = Math.max(0, 100 * (1 - t_frac)); // Linear fuel consumption
+  // --- 1. Fuel & Mass ---
+  const fuelConsumptionRate = 100 / burn_duration;
+  fuel = Math.max(0, fuel - fuelConsumptionRate * dt);
+
   const propMass = fuel_mass * (fuel / 100);
   const totalMass = dry_mass + propMass;
 
-  // Exit if mass is non-positive to prevent division by zero
-  if (totalMass <= 0) {
-    return { ...state, fuel: 0, thrust: 0 };
-  }
+  const t_frac = Math.min(time / burn_duration, 1);
 
-  // --- Thrust Profile ---
-  let currentThrust;
-  if (time < maxQTime) {
-    // Linear interpolation from sea-level to vacuum thrust up to Max-Q
-    currentThrust = thrust + (vacuumThrust - thrust) * (time / maxQTime);
+  if (totalMass <= 0) return { ...state, fuel: 0, thrust: 0 };
+
+  // --- 2. Thrust Profile ---
+  let currentThrustkN;
+  if (time >= burn_duration || fuel <= 0) {
+    currentThrustkN = 0;
+  } else if (time < maxQTime) {
+    currentThrustkN = thrust + (vacuumThrust - thrust) * (time / maxQTime);
   } else {
-    // Linear interpolation from vacuum to end-of-burn thrust
-    currentThrust =
-      vacuumThrust -
-      (vacuumThrust - endThrust) *
-        ((time - maxQTime) / (burn_duration - maxQTime));
+    const progress = (time - maxQTime) / (burn_duration - maxQTime);
+    currentThrustkN = vacuumThrust - (vacuumThrust - endThrust) * progress;
   }
+  const thrustForce = currentThrustkN * 1000; // Convert to Newtons
 
-  // --- CORRECTED FORCE CALCULATION ---
-  // 1. Define forces individually in Newtons
-  const thrustForce = currentThrust * 1000;
+  // --- 3. Pitch (Gravity Turn) ---
+  // Simple linear pitch over time (0 to 45 degrees)
+  const pitch = (Math.PI / 4) * t_frac;
+
+  // --- 4. Forces ---
   const gravityForce = totalMass * GRAVITY_MS2;
 
-  // 2. Define the rocket's pitch angle (gravity turn)
-  // Angle from the vertical axis. 0 is straight up.
-  const pitch = (Math.PI / 4) * t_frac; // Pitches to 45 degrees by MECO
+  // Thrust Vectors
+  const thrustVert = thrustForce * Math.cos(pitch);
+  const thrustHoriz = thrustForce * Math.sin(pitch);
 
-  // 3. Decompose the thrust force into vertical and horizontal components
-  const thrustVertical = thrustForce * Math.cos(pitch);
-  const thrustHorizontal = thrustForce * Math.sin(pitch);
+  // Drag Calculation
+  const velocity = Math.sqrt(vVert ** 2 + vHoriz ** 2);
+  const airDensity = getAirDensity(altitude);
 
-  // 4. Calculate the net force in each direction
-  // Gravity acts only in the negative vertical direction.
-  const netForceVertical = thrustVertical - gravityForce;
-  const netForceHorizontal = thrustHorizontal; // No drag in this model
+  // Drag Equation: Fd = 0.5 * p * v^2 * Cd * A
+  const dragForce = 0.5 * airDensity * velocity ** 2 * dragCoef * area;
 
-  // 5. Calculate acceleration based on Newton's Second Law (F=ma => a=F/m)
-  const verticalAcceleration = netForceVertical / totalMass;
-  const horizontalAcceleration = netForceHorizontal / totalMass;
+  // Drag Vectors (always opposes velocity)
+  let dragVert = 0;
+  let dragHoriz = 0;
+  if (velocity > 0) {
+    dragVert = dragForce * (vVert / velocity);
+    dragHoriz = dragForce * (vHoriz / velocity);
+  }
 
-  // --- Update Kinematics ---
-  // Update velocities based on acceleration over the time step
-  vVert += verticalAcceleration * dt;
-  vHoriz += horizontalAcceleration * dt;
+  // Net Forces
+  const netForceVert = thrustVert - gravityForce - dragVert;
+  const netForceHoriz = thrustHoriz - dragHoriz;
 
-  // Update positions based on new velocities over the time step
+  // --- 5. Acceleration & Kinematics ---
+  const accelVert = netForceVert / totalMass;
+  const accelHoriz = netForceHoriz / totalMass;
+
+  vVert += accelVert * dt;
+  vHoriz += accelHoriz * dt;
+
   altitude += vVert * dt;
   downrange += vHoriz * dt;
   time += dt;
@@ -99,18 +117,17 @@ function runPhysicsTick(state, constants) {
     vHoriz,
     fuel,
     downrange,
-    thrust: currentThrust,
+    thrust: currentThrustkN,
   };
 }
 
-// --- Socket.IO simulation logic ---
+// --- Socket.IO Logic (Unchanged from your version) ---
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
   let interval;
 
   socket.on("start-simulation", ({ mode, params }) => {
     console.log(`Starting ${mode} simulation`);
-    // Initial state for both nominal and display simulations
     const initialState = {
       time: 0,
       altitude: 0,
@@ -121,18 +138,14 @@ io.on("connection", (socket) => {
     };
     let nominal = { ...initialState };
     let display = { ...initialState };
-
     let hasAnomaly = false;
     let anomalyStart = 0;
 
     interval = setInterval(() => {
-      // Run the physics for the "perfect" nominal flight
       nominal = runPhysicsTick(nominal, F9_CONSTANTS);
 
-      // Run physics for the flight to be displayed (which can have anomalies/changes)
       if (mode === "predictive") {
         display = runPhysicsTick(display, F9_CONSTANTS);
-        // Introduce a random fuel leak anomaly
         if (
           display.time > 40 &&
           display.time < 100 &&
@@ -147,17 +160,14 @@ io.on("connection", (socket) => {
           display.fuel = Math.max(0, display.fuel);
         }
       } else {
-        // Run with user-defined parameters
         display = runPhysicsTick(display, { ...F9_CONSTANTS, ...params });
       }
 
-      // Check for significant deviation to display a warning
       let anomalyMessage = null;
       if (mode === "predictive" && nominal.fuel - display.fuel > 2.0) {
-        anomalyMessage = "⚠️  High Burn Rate Anomaly Detected!";
+        anomalyMessage = "⚠️ High Burn Rate Anomaly Detected!";
       }
 
-      // Emit the data packet to the client
       socket.emit("data", {
         time: nominal.time,
         nominal: {
@@ -165,19 +175,18 @@ io.on("connection", (socket) => {
           downrange: nominal.downrange,
           velocity: Math.sqrt(nominal.vVert ** 2 + nominal.vHoriz ** 2),
           fuel: nominal.fuel,
-          thrust: nominal.thrust, // Already in kN from constants
+          thrust: nominal.thrust,
         },
         display: {
           altitude: display.altitude,
           downrange: display.downrange,
           velocity: Math.sqrt(display.vVert ** 2 + display.vHoriz ** 2),
           fuel: display.fuel,
-          thrust: display.thrust, // Already in kN
+          thrust: display.thrust,
         },
         anomaly: anomalyMessage,
       });
 
-      // Stop the simulation after the main engine cutoff (MECO)
       if (nominal.time >= F9_CONSTANTS.burn_duration) {
         clearInterval(interval);
       }
@@ -186,7 +195,6 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     clearInterval(interval);
-    console.log("User disconnected:", socket.id);
   });
 });
 
