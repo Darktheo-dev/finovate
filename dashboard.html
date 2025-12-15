@@ -7,7 +7,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-      /* --- CSS Styles (Unchanged but minified for cleanliness) --- */
       * {
         margin: 0;
         padding: 0;
@@ -61,11 +60,11 @@
         height: 450px;
         position: relative;
       }
-      /* Important: Allow canvas to fill parent */
       canvas {
         width: 100% !important;
         height: 100% !important;
       }
+
       .stats {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
@@ -146,6 +145,7 @@
       }
     </style>
   </head>
+
   <body>
     <div class="container">
       <h1 id="missionTitle">Mission Dashboard</h1>
@@ -175,7 +175,6 @@
     <script>
       let socket;
 
-      // --- Chart Styling Config ---
       const fontConfig = {
         title: {
           display: true,
@@ -213,7 +212,7 @@
         },
       };
 
-      // --- Initialize Charts ---
+      // Charts
       const ctxSystems = document
         .getElementById("chartSystems")
         .getContext("2d");
@@ -265,7 +264,7 @@
             y: {
               type: "linear",
               position: "left",
-              suggestedMax: 100, // Auto-scale if we go higher
+              suggestedMax: 100,
               title: { ...fontConfig.title, text: "Altitude (km)" },
               ticks: fontConfig.ticks,
               grid: fontConfig.grid,
@@ -274,36 +273,35 @@
             y1: {
               type: "linear",
               position: "right",
-              suggestedMax: 2000, // Auto-scale if we go faster
+              suggestedMax: 2000,
               title: { ...fontConfig.title, text: "Velocity (m/s)" },
               ticks: fontConfig.ticks,
-              grid: { drawOnChartArea: false }, // Hide grid for 2nd axis
+              grid: { drawOnChartArea: false },
               border: fontConfig.border,
             },
           },
         },
       });
 
-      // --- Main Logic ---
       window.addEventListener("load", () => {
-        // Safe Socket URL detection
-        const socketUrl =
-          window.location.hostname === "localhost" ||
-          window.location.protocol === "file:"
-            ? "http://localhost:3000"
-            : "/"; // Relative path if hosted normally
-
-        // Check if IO loaded
         if (typeof io === "undefined") {
-          document.getElementById("phase").textContent =
-            "Error: Socket.IO Library Failed";
-          document.getElementById("phase").style.color = "#ff3b30";
+          const p = document.getElementById("phase");
+          p.textContent = "Error: Socket.IO Library Failed";
+          p.style.color = "#ff3b30";
           return;
         }
 
-        socket = io(socketUrl);
+        // ✅ Always use Render in production, localhost in dev
+        const isLocal =
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1";
 
-        // Simulation Mode Setup
+        const socketUrl = isLocal
+          ? "http://localhost:3000"
+          : "https://finovate-8ud5.onrender.com"; // <-- your Render backend URL
+
+        socket = io(socketUrl, { transports: ["websocket", "polling"] });
+
         const simMode = localStorage.getItem("simMode") || "predictive";
         const customParams =
           JSON.parse(localStorage.getItem("customRocketParams")) || {};
@@ -312,14 +310,15 @@
           simMode === "predictive"
             ? "Predictive Analysis"
             : "Comparative Analysis";
+
         document.getElementById(
           "missionTitle"
         ).innerHTML = `${modeText} <span class="mode-badge mode-${simMode}">${simMode}</span>`;
 
-        // Initialize Datasets based on Mode
         if (simMode === "predictive") {
           document.getElementById("systemsTitle").textContent =
             "Propellant Anomaly Detection";
+
           systemsChart.data.datasets = [
             {
               label: "Actual",
@@ -337,6 +336,7 @@
               pointRadius: 0,
             },
           ];
+
           dynamicsChart.data.datasets = [
             {
               label: "Altitude",
@@ -358,6 +358,7 @@
         } else {
           document.getElementById("systemsTitle").textContent =
             "Propellant Comparison";
+
           systemsChart.data.datasets = [
             {
               label: "Your Rocket",
@@ -375,6 +376,7 @@
               pointRadius: 0,
             },
           ];
+
           dynamicsChart.data.datasets = [
             {
               label: "Your Alt",
@@ -412,34 +414,32 @@
             },
           ];
         }
+
         systemsChart.update();
         dynamicsChart.update();
 
-        // --- Socket Events ---
         socket.on("connect", () => {
-          console.log("Connected to Flight Computer");
-          document.getElementById("phase").textContent =
-            "Standby for Launch...";
-          document.getElementById("phase").style.color = "#00ff88";
-          document.getElementById("phase").classList.remove("anomaly-alert");
+          const phaseEl = document.getElementById("phase");
+          phaseEl.textContent = "Standby for Launch...";
+          phaseEl.style.color = "#00ff88";
+          phaseEl.classList.remove("anomaly-alert");
 
-          // Start the sim immediately on connect
           socket.emit("start-simulation", {
             mode: simMode,
             params: customParams,
           });
 
-          // Clear storage to prevent sticky settings
           localStorage.removeItem("simMode");
           localStorage.removeItem("customRocketParams");
         });
 
         socket.on("data", (d) => {
-          if (!d || !d.display) return; // Safety check
+          if (!d || !d.display) return;
 
-          const { display: disp, nominal: nom } = d;
+          const disp = d.display;
+          const nom = d.nominal;
+          const t = d.time;
 
-          // Update DOM
           document.getElementById("altitude").textContent = `${(
             disp.altitude / 1000
           ).toFixed(1)} km`;
@@ -453,23 +453,17 @@
             1
           )}%`;
 
-          // Phase / Anomaly Text
           const phaseEl = document.getElementById("phase");
           if (d.anomaly) {
             phaseEl.textContent = d.anomaly;
             phaseEl.classList.add("anomaly-alert");
           } else {
             phaseEl.classList.remove("anomaly-alert");
-            phaseEl.textContent = `T+ ${d.time.toFixed(1)}s`;
-            // Color coding based on flight phase
-            if (d.time < 70) phaseEl.style.color = "#00ff88"; // Green (Ascent)
-            else if (disp.fuel > 0)
-              phaseEl.style.color = "#ffaa00"; // Orange (MaxQ/Burn)
-            else phaseEl.style.color = "#ff4444"; // Red (MECO)
+            phaseEl.textContent = `T+ ${t.toFixed(1)}s`;
+            if (t < 70) phaseEl.style.color = "#00ff88";
+            else if (disp.fuel > 0) phaseEl.style.color = "#ffaa00";
+            else phaseEl.style.color = "#ff4444";
           }
-
-          // Push to Charts
-          const t = d.time;
 
           if (simMode === "predictive") {
             systemsChart.data.datasets[0].data.push({ x: t, y: disp.fuel });
@@ -502,14 +496,14 @@
             dynamicsChart.data.datasets[3].data.push({ x: t, y: nom.velocity });
           }
 
-          // Efficient Update (No animation)
           systemsChart.update("none");
           dynamicsChart.update("none");
         });
 
         socket.on("disconnect", () => {
-          document.getElementById("phase").textContent = "Telemetry Lost";
-          document.getElementById("phase").style.color = "#ff3b30";
+          const phaseEl = document.getElementById("phase");
+          phaseEl.textContent = "Telemetry Lost";
+          phaseEl.style.color = "#ff3b30";
         });
       });
     </script>
